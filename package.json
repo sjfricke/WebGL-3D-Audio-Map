@@ -1,0 +1,29 @@
+{
+  "name": "WebGL-3D-Audio-Map",
+  "version": "1.0.0",
+  "description": "Build 3D maps from audio",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "cookie-parser": "^1.4.0",
+    "ejs": "^2.3.4",
+    "express": "^4.13.3",
+    "forever": "^0.15.1",
+    "http": "0.0.0",
+    "morgan": "^1.6.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjfricke/WebGL-3D-Audio-Map.git"
+  },
+  "author": "Spencer Fricke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sjfricke/WebGL-3D-Audio-Map/issues"
+  },
+  "homepage": "https://github.com/sjfricke/WebGL-3D-Audio-Map#readme"
+}

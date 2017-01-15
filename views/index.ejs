@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+<title>3D Audio Map - WebGL</title>
+ 
+<script src="library/jquery-3.1.1.min.js"></script>    
+    
+</head>
+
+<body>
+    
+    Welcome                
+    
+    <br>
+    
+    <button onclick="setupAudio('currentAudio', 2048, 'Adventures.mp3')">Play!</button>
+    <br>
+    <button onclick="stopAudio()">Stop!</button>
+    	
+    <audio id="currentAudio"></audio>
+    
+</body>
+    
+<!--  Need page to load first  -->
+<script src="javascript/frontPage.js"></script>    
+ 
+</html>
