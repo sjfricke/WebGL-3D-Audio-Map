@@ -9,11 +9,12 @@
     
 <title>3D Audio Map - WebGL</title>
  
-<script src="library/jquery-3.1.1.min.js"></script>    
+<script async src="library/jquery-3.1.1.min.js"></script>    
+<script src="library/gl-matrix-min.js"></script>    
     
 </head>
 
-<body>
+<body onload="pageSetup()">
     
     Welcome                
     
@@ -25,9 +26,37 @@
     	
     <audio id="currentAudio"></audio>
     
+    
 </body>
     
+    <!--TODO Get rid of this in html-->
+    <!--Shaders need to come BEFORE logic-->
+<script id="vertexShader_normal" type="notjs">
+    attribute vec3 vertexPos; 
+    attribute vec4 vertexColor; 
+    uniform mat4 modelViewMatrix; 
+    uniform mat4 projectionMatrix; 
+    varying vec4 vColor; 
+    void main(void) { 
+        // Return the transformed and projected vertex value 
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(vertexPos, 1.0); 
+        // Output the vertexColor in vColor 
+        vColor = vertexColor; 
+    }
+</script>
+<script id="fragmentShader_normal" type="notjs">
+    precision mediump float;
+    varying vec4 vColor;
+    void main(void) {
+        // Return the pixel color: always output white\n" +
+        gl_FragColor = vColor;
+    }
+</script>
+    
 <!--  Need page to load first  -->
-<script src="javascript/frontPage.js"></script>    
+<script src="javascript/contextHolder.js"></script> <!--Global Graphic file-->    
+<script src="models/box.js"></script>    
+<script src="javascript/audio.js"></script>    
+<script src="javascript/graphicMain.js"></script>    
  
 </html>

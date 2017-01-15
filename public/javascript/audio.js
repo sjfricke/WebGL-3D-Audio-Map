@@ -36,8 +36,7 @@ function startAudio() {
 
 function stopAudio() {
     audioDiv.pause();
-    songPlaying = false;
-    
+    songPlaying = false;    
 }
 
  function renderFrame() {
