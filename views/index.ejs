@@ -31,7 +31,27 @@
     
     <!--TODO Get rid of this in html-->
     <!--Shaders need to come BEFORE logic-->
-<script id="vertexShader_normal" type="notjs">
+ <script id="vertexShader_normal" type="notjs">
+    attribute vec3 position;
+    uniform mat4 Pmatrix;
+    uniform mat4 Vmatrix;
+    uniform mat4 Mmatrix;
+    attribute vec3 color;
+    varying vec3 vColor;
+    void main(void) { 
+       gl_Position = Pmatrix*Vmatrix*Mmatrix*vec4(position, 1.);
+       vColor = color;
+    }
+
+</script>
+<script id="fragmentShader_normal" type="notjs">
+    precision mediump float;
+    varying vec3 vColor;
+    void main(void) {
+        gl_FragColor = vec4(vColor, 1.0);
+    }
+</script>   
+<script id="vertexShader_normal2" type="notjs">
     attribute vec3 vertexPos; 
     attribute vec4 vertexColor; 
     uniform mat4 modelViewMatrix; 
@@ -44,7 +64,7 @@
         vColor = vertexColor; 
     }
 </script>
-<script id="fragmentShader_normal" type="notjs">
+<script id="fragmentShader_normal2" type="notjs">
     precision mediump float;
     varying vec4 vColor;
     void main(void) {

@@ -1,4 +1,4 @@
-var audioCtx, analyser, audioDiv, audioSrc, frequencyData;
+var audioCtx, analyser, audioDiv, audioSrc;
 var songPlaying = false;
 function setupAudio(elementID, fftSize, song) {
     audioCtx = new(window.AudioContext || window.webkitAudioContext)();

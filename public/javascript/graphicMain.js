@@ -1,176 +1,198 @@
-// init function to set the page up
-function pageSetup() {
+window.onload = function() {
+    "use strict";
     
-    setupShaders();
     
+    /*============= Creating a canvas ======================*/
     var canvasDiv = document.createElement("DIV");
     // set up the canvas and context
-    __context[0] = {}; // need to make an empty object to add
-    __context[0].canvas = document.createElement("canvas");
-    __context[0].canvas.setAttribute("width", window.innerWidth * .98);
-    __context[0].canvas.setAttribute("height",window.innerHeight * .88);
-    canvasDiv.appendChild(__context[0].canvas);
+    var canvas = document.createElement("canvas");
+    canvas.setAttribute("width", window.innerWidth * .98);
+    canvas.setAttribute("height",window.innerHeight * .88);
+    canvasDiv.appendChild(canvas);
     
-    document.body.appendChild(canvasDiv);
+     document.body.appendChild(canvasDiv);
+
+    var gl = canvas.getContext('webgl');
+
+    /*========== Defining and storing the geometry ==========*/
+    var box = createBox(gl, 1.0, 0, 0, 0);
+
+    /*=================== SHADERS =================== */
+
+    var vertCode = document.getElementById("vertexShader_normal").text;
+    var fragCode = document.getElementById("fragmentShader_normal").text;
+
+    var vertShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertShader, vertCode);
+    gl.compileShader(vertShader);
+    if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(vertShader)); return null; }
+
+    var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragShader, fragCode);
+    gl.compileShader(fragShader);
+    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(fragShader)); return null;  }
+
+    var shaderprogram = gl.createProgram();
+    gl.attachShader(shaderprogram, vertShader);
+    gl.attachShader(shaderprogram, fragShader);
+    gl.linkProgram(shaderprogram);
+
+    if (!gl.getProgramParameter(shaderprogram, gl.LINK_STATUS)) {
+        alert("Could not initialise shaders"); }
+
     
-    __context[0].gl = initWebGL(__context[0].canvas);
-    __context[0].gl = initViewport(__context[0].gl, __context[0].canvas);
-    __context[0].canvas = initMatrices(__context[0].canvas);  
-    __context[0].box = createBox(__context[0].gl, .1, 0,0,0);    
-    __context[0].shaderInfo = initShader(__context[0].gl, __shaders.vertexShader_normal, __shaders.fragmentShader_normal);
-    run(__context[0].gl, __context[0].shaderInfo, __context[0].canvas, __context[0].box);    
-    //console.log(__context[0]);
-}
+/*======== Associating attributes to vertex shader =====*/
+    var _Pmatrix = gl.getUniformLocation(shaderprogram, "Pmatrix");
+    var _Vmatrix = gl.getUniformLocation(shaderprogram, "Vmatrix");
+    var _Mmatrix = gl.getUniformLocation(shaderprogram, "Mmatrix");
 
-// sets all the shaders to __shaders list
-function setupShaders() {
-    __shaders.vertexShader_normal = document.getElementById("vertexShader_normal").text;
-    __shaders.fragmentShader_normal = document.getElementById("fragmentShader_normal").text;
-}
+    gl.bindBuffer(gl.ARRAY_BUFFER, box.vertex_buffer);
+    var _position = gl.getAttribLocation(shaderprogram, "position");
+    gl.vertexAttribPointer(_position, box.vertSize, gl.FLOAT, false,0,0);
+    gl.enableVertexAttribArray(_position);
 
-// Returns gl context
-function initWebGL(canvas) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, box.color_buffer);
+    var _color = gl.getAttribLocation(shaderprogram, "color");
+    gl.vertexAttribPointer(_color, box.colorSize, gl.FLOAT, false,0,0) ;
+    gl.enableVertexAttribArray(_color);
+    gl.useProgram(shaderprogram);
 
-    var gl = null;
-    var msg = "Your browser does not support WebGL, or it is not enabled by default.";
-    try {
-        gl = canvas.getContext("webgl");
-    } catch (e) {
-        msg = "Error creating WebGL Context!: " + e.toString();
-    }
+/*==================== MATRIX ====================== */
 
-    if (!gl) {
-        alert(msg);
-        throw new Error(msg);
-    }
-    
-    return gl;        
+ function get_projection(angle, a, zMin, zMax) {
+    var ang = Math.tan((angle*.5)*Math.PI/180);//angle*.5
+    return [
+       0.5/ang, 0 , 0, 0,
+       0, 0.5*a/ang, 0, 0,
+       0, 0, -(zMax+zMin)/(zMax-zMin), -1,
+       0, 0, (-2*zMax*zMin)/(zMax-zMin), 0 
+       ];
  }
 
-function initViewport(gl, canvas) {
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    return gl;
-}
+ var proj_matrix = get_projection(70, canvas.width/canvas.height, 1, 100); //used to do main projection
+ var mo_matrix = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
+ var view_matrix = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
 
-function initMatrices(canvas) {
-    // Create a model view matrix with object at 0, 0, -8
-    canvas.modelViewMatrix = mat4.create();
-    mat4.translate(canvas.modelViewMatrix, canvas.modelViewMatrix, [0, 0, -8]);
+ view_matrix[14] = view_matrix[14]-6;
 
-    // Create a project matrix with 45 degree field of view
-    canvas.projectionMatrix = mat4.create();
-    mat4.perspective(canvas.projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 1, 10000);
+ /*================= Mouse events ======================*/
 
-    canvas.rotationAxis = vec3.create();
-    vec3.normalize(canvas.rotationAxis, [1, 1, 1]);
-    
-    return canvas;
-}
+ var AMORTIZATION = 0.95;
+ var drag = false;
+ var old_x, old_y;
+ var dX = 0, dY = 0;
 
-function createShader(gl, str, type) {
-    var shader;
-    if (type == "fragment") {
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (type == "vertex") {
-        shader = gl.createShader(gl.VERTEX_SHADER);
-    } else {
-        return null;
+ var mouseDown = function(e) {
+    drag = true;
+    old_x = e.pageX, old_y = e.pageY;
+    e.preventDefault();
+    return false;
+ };
+
+ var mouseUp = function(e){
+    drag = false;
+ };
+
+ var mouseMove = function(e) {
+    if (!drag) return false;
+    dX = (e.pageX-old_x)*2*Math.PI/canvas.width,
+    dY = (e.pageY-old_y)*2*Math.PI/canvas.height;
+    THETA+= dX;
+    PHI+=dY;
+    old_x = e.pageX, old_y = e.pageY;
+    e.preventDefault();
+ };
+
+ canvas.addEventListener("mousedown", mouseDown, false);
+ canvas.addEventListener("mouseup", mouseUp, false);
+ canvas.addEventListener("mouseout", mouseUp, false);
+ canvas.addEventListener("mousemove", mouseMove, false);
+
+ /*=========================rotation================*/
+
+ function rotateX(m, angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    var mv1 = m[1], mv5 = m[5], mv9 = m[9];
+
+    m[1] = m[1]*c-m[2]*s;
+    m[5] = m[5]*c-m[6]*s;
+    m[9] = m[9]*c-m[10]*s;
+
+    m[2] = m[2]*c+mv1*s;
+    m[6] = m[6]*c+mv5*s;
+    m[10] = m[10]*c+mv9*s;
+ }
+
+ function rotateY(m, angle) {
+    var c = Math.cos(angle);
+    var s = Math.sin(angle);
+    var mv0 = m[0], mv4 = m[4], mv8 = m[8];
+
+    m[0] = c*m[0]+s*m[2];
+    m[4] = c*m[4]+s*m[6];
+    m[8] = c*m[8]+s*m[10];
+
+    m[2] = c*m[2]-s*mv0;
+    m[6] = c*m[6]-s*mv4;
+    m[10] = c*m[10]-s*mv8;
+ }
+
+ /*=================== Drawing =================== */
+
+ var THETA = 0,
+ PHI = 0;
+ var time_old = 0;
+
+ var animate = function(time) {
+    var dt = time-time_old;
+
+    if (!drag) {
+       dX *= AMORTIZATION, dY*=AMORTIZATION;
+       THETA+=dX, PHI+=dY;
     }
 
-    gl.shaderSource(shader, str);
-    gl.compileShader(shader);
+    //set model matrix to I4
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(shader));
-        return null;
-    }
+    mo_matrix[0] = 1, mo_matrix[1] = 0, mo_matrix[2] = 0,
+    mo_matrix[3] = 0,
 
-    return shader;
-}
+    mo_matrix[4] = 0, mo_matrix[5] = 1, mo_matrix[6] = 0,
+    mo_matrix[7] = 0,
 
-// returns the shaderInfo to the context
-function initShader(gl, vertexSource, fragmentSource) {
+    mo_matrix[8] = 0, mo_matrix[9] = 0, mo_matrix[10] = 1,
+    mo_matrix[11] = 0,
 
-    var shaderInfo = {};
-    
-    // load and compile the fragment and vertex shader
-    var fragmentShader = createShader(gl, fragmentSource, "fragment");
-    var vertexShader = createShader(gl, vertexSource, "vertex");
+    mo_matrix[12] = 0, mo_matrix[13] = 0, mo_matrix[14] = 0,
+    mo_matrix[15] = 1;
 
-    // link them together into a new program
-    shaderInfo.shaderProgram = gl.createProgram();
-    gl.attachShader(shaderInfo.shaderProgram, vertexShader);
-    gl.attachShader(shaderInfo.shaderProgram, fragmentShader);
-    gl.linkProgram(shaderInfo.shaderProgram);
+    rotateY(mo_matrix, THETA);
+    rotateX(mo_matrix, PHI);
 
-    // get pointers to the shader params
-    shaderInfo.shaderVertexPositionAttribute = gl.getAttribLocation(shaderInfo.shaderProgram, "vertexPos");
-    gl.enableVertexAttribArray(shaderInfo.shaderVertexPositionAttribute);
-
-    shaderInfo.shaderVertexColorAttribute = gl.getAttribLocation(shaderInfo.shaderProgram, "vertexColor");
-    gl.enableVertexAttribArray(shaderInfo.shaderVertexColorAttribute);
-
-    shaderInfo.shaderProjectionMatrixUniform = gl.getUniformLocation(shaderInfo.shaderProgram, "projectionMatrix");
-    shaderInfo.shaderModelViewMatrixUniform = gl.getUniformLocation(shaderInfo.shaderProgram, "modelViewMatrix");
-
-
-    if (!gl.getProgramParameter(shaderInfo.shaderProgram, gl.LINK_STATUS)) {
-        alert("Could not initialise shaders");
-    }
-    
-    return shaderInfo;
-}
-
-// frequencyData
-function drawRow(gl, shaderInfo, canvas, obj) {
-
-    // clear the background (with black)
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    time_old = time; 
     gl.enable(gl.DEPTH_TEST);
+
+    // gl.depthFunc(gl.LEQUAL);
+
+    gl.clearColor(0.5, 0.5, 0.5, 0.9);
+    gl.clearDepth(1.0);
+    gl.viewport(0.0, -25.0, canvas.width, canvas.height); //used to recenter middle
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // set the shader to use
-    gl.useProgram(shaderInfo.shaderProgram);
+    gl.uniformMatrix4fv(_Pmatrix, false, proj_matrix);
+    gl.uniformMatrix4fv(_Vmatrix, false, view_matrix);
+    gl.uniformMatrix4fv(_Mmatrix, false, mo_matrix);
 
-    // connect up the shader parameters: vertex position, color and projection/model matrices
-    // set up the buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, obj.pos_buffer);
-    gl.vertexAttribPointer(shaderInfo.shaderVertexPositionAttribute, obj.pos_item_size, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, box.index_buffer);
+    gl.drawElements(box.primtype, box.nIndices, gl.UNSIGNED_SHORT, 0);
+
+    window.requestAnimationFrame(animate);
+ }
+
+ animate(0);
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, obj.color_buffer);
-    gl.vertexAttribPointer(shaderInfo.shaderVertexColorAttribute, obj.color_item_size, gl.FLOAT, false, 0, 0);
-    
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.index_buffer);
-
-    gl.uniformMatrix4fv(shaderInfo.shaderProjectionMatrixUniform, false, canvas.projectionMatrix);
-    gl.uniformMatrix4fv(shaderInfo.shaderModelViewMatrixUniform, false, canvas.modelViewMatrix);
-
-    // draw the object
-//    console.log(gl);
-//    console.log(shaderInfo);
-//    console.log(canvas);
-//    console.log(obj);
-    gl.drawElements(obj.primtype, 36, gl.UNSIGNED_SHORT, 0);
 }
 
-var duration = 5000; // ms
-var currentTime = Date.now();
-
-function animate() {
-    var now = Date.now();
-    var deltat = now - currentTime;
-    currentTime = now;
-    var fract = deltat / duration;
-    var angle = Math.PI * 2 * fract;
-    mat4.rotate(modelViewMatrix, modelViewMatrix, angle, rotationAxis);
-}
-
-function run(gl, shaderInfo, canvas, box) {
-
-    requestAnimationFrame(function() { 
-        run(gl, shaderInfo, canvas, box); 
-    });
-    
-    drawRow(gl, shaderInfo, canvas, box);
-    //animate();
-}
+         
