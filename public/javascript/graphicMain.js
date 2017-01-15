@@ -1,6 +1,6 @@
 window.onload = function() {
     "use strict";
-    
+    var i; // loop i
     
     /*============= Creating a canvas ======================*/
     var canvasDiv = document.createElement("DIV");
@@ -15,7 +15,8 @@ window.onload = function() {
     var gl = canvas.getContext('webgl');
 
     /*========== Defining and storing the geometry ==========*/
-    var box = createBox(gl, 1.0, 0, 0, 0);
+    var box = createBoxSet(frequencyData, gl);
+    console.log(box);
 
     /*=================== SHADERS =================== */
 
@@ -178,7 +179,7 @@ window.onload = function() {
 
     gl.clearColor(0.5, 0.5, 0.5, 0.9);
     gl.clearDepth(1.0);
-    gl.viewport(0.0, -25.0, canvas.width, canvas.height); //used to recenter middle
+    gl.viewport(0.0, -50.0, canvas.width, canvas.height); //used to recenter middle
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniformMatrix4fv(_Pmatrix, false, proj_matrix);
@@ -187,12 +188,9 @@ window.onload = function() {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, box.index_buffer);
     gl.drawElements(box.primtype, box.nIndices, gl.UNSIGNED_SHORT, 0);
-
     window.requestAnimationFrame(animate);
  }
 
  animate(0);
     
 }
-
-         

@@ -10,7 +10,7 @@ function setupAudio(elementID, fftSize, song) {
     audioSrc.connect(audioCtx.destination);
     analyser.connect(audioCtx.destination);
     
-    analyser.fftSize = fftSize || 2048;
+    analyser.fftSize = fftSize || 256; //only really room for 128 boxes
     frequencyData = new Uint8Array(analyser.frequencyBinCount);
     
     //can pass in variable to get audio after setup
@@ -48,7 +48,7 @@ function stopAudio() {
      // update data in frequencyData     
      analyser.getByteFrequencyData(frequencyData);
      // render frame based on values in frequencyData
-     console.log(frequencyData)
+//     console.log(frequencyData)
   }
 
 
