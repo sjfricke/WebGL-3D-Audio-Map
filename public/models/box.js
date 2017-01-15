@@ -39,23 +39,28 @@ function getPosBuf(h, i) {
     } else {
         j = 0; //no adding
     }
+    if (i == 0) h = 0; //bug...ugh
+    var p = h/2;
     return [  
-       0.1+j, h, 0.1,    -0.1+j, h, 0.1,    -0.1+j,-0.1, 0.1,   0.1+j,-0.1, 0.1,
-       0.1+j, h, 0.1,     0.1+j,-0.1, 0.1,   0.1+j,-0.1,-0.1,   0.1+j, h,-0.1,
-       0.1+j, h, 0.1,     0.1+j, h,-0.1,    -0.1+j, h,-0.1,    -0.1+j, h, 0.1,
-      -0.1+j, h, 0.1,    -0.1+j, h,-0.1,    -0.1+j,-0.1,-0.1,  -0.1+j,-0.1, 0.1,
-      -0.1+j,-0.1,-0.1,   0.1+j,-0.1,-0.1,   0.1+j,-0.1, 0.1,  -0.1+j,-0.1, 0.1,
-       0.1+j,-0.1,-0.1,  -0.1+j,-0.1,-0.1,  -0.1+j, h,-0.1,     0.1+j, h,-0.1 
+       0.1+j, h, 0.1+p,    -0.1+j, h, 0.1+p,    -0.1+j,-0.1, 0.1+p,   0.1+j,-0.1, 0.1+p,
+       0.1+j, h, 0.1+p,     0.1+j,-0.1, 0.1+p,   0.1+j,-0.1,-0.1+p,   0.1+j, h,-0.1+p,
+       0.1+j, h, 0.1+p,     0.1+j, h,-0.1+p,    -0.1+j, h,-0.1+p,    -0.1+j, h, 0.1+p,
+      -0.1+j, h, 0.1+p,    -0.1+j, h,-0.1+p,    -0.1+j,-0.1,-0.1+p,  -0.1+j,-0.1, 0.1+p,
+      -0.1+j,-0.1,-0.1+p,   0.1+j,-0.1,-0.1+p,   0.1+j,-0.1, 0.1+p,  -0.1+j,-0.1, 0.1+p,
+       0.1+j,-0.1,-0.1+p,  -0.1+j,-0.1,-0.1+p,  -0.1+j, h,-0.1+p,     0.1+j, h,-0.1+p 
 ]}
 
 function getColorBuf(red, green, blue) {
+    r = red / 255;
+    g = green / 255;
+    b = blue / 255
     return [    
-        1,0,1, 1,0,1, 1,0,1, 1,0,1,
-        1,1,0, 1,1,0, 1,1,0, 1,1,0,
-        0,0,1, 0,0,1, 0,0,1, 0,0,1,
-        1,0,0, 1,0,0, 1,0,0, 1,0,0,
-        1,1,0, 1,1,0, 1,1,0, 1,1,0,
-        0,1,0, 0,1,0, 0,1,0, 0,1,0
+        r,g,b, r,g,b, r,g,b, r,g,b,
+        r,g,b, r,g,b, r,g,b, r,g,b,
+        r,g,b, r,g,b, r,g,b, r,g,b,
+        r,g,b, r,g,b, r,g,b, r,g,b,
+        r,g,b, r,g,b, r,g,b, r,g,b,
+        r,g,b, r,g,b, r,g,b, r,g,b
 ]}   
 
 // element index array
@@ -80,7 +85,7 @@ function createBoxSet(audioData, gl) {
     var boxSet = {
         vertSize: 3, 
         colorSize: 3, 
-        nIndices: 36 * audioData.length, 
+        nIndices: 36 * (audioData.length - 51), 
         vertLength : 72,
         primtype:gl.TRIANGLES
     };
@@ -89,9 +94,14 @@ function createBoxSet(audioData, gl) {
     var offset_value = 0;
     
     var i, j;
-    for (i = 0; i < audioData.length; i++) {
+    for (i = 1; i < audioData.length - 50; i++) {
         vertex_buffer_array = vertex_buffer_array.concat(getPosBuf(audioData[i]/100, i));
-        color_buffer_array = color_buffer_array.concat(getColorBuf(0,0,0));
+        if (night_mood) {
+            color_buffer_array = color_buffer_array.concat(getColorBuf(audioData[i] - 255, audioData[i], audioData[i]/2));
+        } else {
+            color_buffer_array = color_buffer_array.concat(getColorBuf(audioData[i]/3, audioData[i] - 180, audioData[i] + 20));
+        }
+        
         var offset_index = getIndices();
 //        console.log(offset_index);
         for (j = 0; j < offset_index.length; j++) {

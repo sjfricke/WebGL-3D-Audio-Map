@@ -20,9 +20,12 @@
     
     <br>
     
-    <button onclick="setupAudio('currentAudio', 256, 'Adventures.mp3')">Play!</button>
+    <button onclick="setupAudio('currentAudio', 256, 'Adventures.mp3')">Play Adventures!</button>
+    <button onclick="setupAudio('currentAudio', 256, 'Sapphire.mp3')">Play Sapphire!</button>
+    <button onclick="setupAudio('currentAudio', 256, 'Inf1n1t.mp3')">Play Inf1n1t!</button>
+    <button onclick="switch_night()">Night Mode?</button>
     <br>
-    <button onclick="stopAudio()">Stop!</button>
+<!--    <button onclick="stopAudio()">Stop!</button>-->
     	
     <audio id="currentAudio"></audio>
     
@@ -40,7 +43,9 @@
     varying vec3 vColor;
     void main(void) { 
        gl_Position = Pmatrix*Vmatrix*Mmatrix*vec4(position, 1.);
-       vColor = color;
+       vColor.x = color.x;
+       vColor.y = color.y;
+       vColor.z = position.y;
     }
 
 </script>

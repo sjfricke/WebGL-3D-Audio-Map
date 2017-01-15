@@ -42,9 +42,6 @@ window.onload = function() {
     if (!gl.getProgramParameter(shaderprogram, gl.LINK_STATUS)) {
         alert("Could not initialise shaders"); }
 
-    
-
-
 /*==================== MATRIX ====================== */
 
  function get_projection(angle, a, zMin, zMax) {
@@ -179,7 +176,7 @@ window.onload = function() {
     gl.enableVertexAttribArray(_color);
     gl.useProgram(shaderprogram);
      
-    gl.clearColor(0.5, 0.5, 0.5, 0.9);
+    gl.clearColor(back_red, back_green, back_blue, 0.9);
     gl.clearDepth(1.0);
     gl.viewport(0.0, 0.0, canvas.width, canvas.height); //NOT to use to move camera
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -193,6 +190,30 @@ window.onload = function() {
     window.requestAnimationFrame(animate);
  }
 
+ setInterval( newBackColor, 100 );
  animate(0);
+
+ 
+
+ function newBackColor() {
+     var count = 0;
+     var total = 0;
+     for (var i = 0; i < frequencyData.length; i += 10){
+        total += frequencyData[i];
+        count++;
+     }
+     
+     total = (total / count) / 120;
+     if (!total) {
+         return;
+     }
+     if (night_mood) {
+         total = 1 - total;
+     }
+     back_red = total;
+     back_green = total;
+     back_blue = total;
+ }  
+    
     
 }

@@ -7,7 +7,8 @@ function setupAudio(elementID, fftSize, song) {
     if (songPlayed) {
         startAudio();
         return;
-    }*/
+    }*/    
+    if (songPlayed) {return;}
     
     audioCtx = new(window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
@@ -44,6 +45,7 @@ function startAudio() {
 }
 
 function stopAudio() {
+    return; //TODO - fix everything
     audioDiv.pause();  
     lowerWaves = setInterval(function(){
         for (var i = 0; i < frequencyData.length; i++) {            
