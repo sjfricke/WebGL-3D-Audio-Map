@@ -1,6 +1,14 @@
 var audioCtx, analyser, audioDiv, audioSrc;
-var songPlaying = false;
+var songPlayed = false;
 function setupAudio(elementID, fftSize, song) {
+    
+    // TODO, broken if stopped and started
+    /*if (audioDiv.paused) return;
+    if (songPlayed) {
+        startAudio();
+        return;
+    }*/
+    
     audioCtx = new(window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     audioDiv = document.getElementById(elementID);
@@ -25,24 +33,33 @@ function getAudio(song){
     audioDiv.load();
     audioDiv.play();
     
-    songPlaying = true;
+    songPlayed = true;
     renderFrame();
 }
 
 function startAudio() {
+    clearInterval(lowerWaves);
     audioDiv.play();
     renderFrame();
 }
 
 function stopAudio() {
-    audioDiv.pause();
-    songPlaying = false;    
+    audioDiv.pause();  
+    lowerWaves = setInterval(function(){
+        for (var i = 0; i < frequencyData.length; i++) {            
+            if (frequencyData[i] < 3) {
+                frequencyData[i] = 0;
+            } else { 
+                frequencyData[i] -= 2;
+            }
+        }
+    }, 20);
 }
 
  function renderFrame() {
      
      //renderer.renderFrame(frequencyData);   
-     if (songPlaying) {
+     if (!audioDiv.paused) {
         requestAnimationFrame(renderFrame);         
      }
      // update data in frequencyData     

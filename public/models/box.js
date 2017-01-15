@@ -35,7 +35,7 @@ function createBox(gl, height, red, green, blue) {
 // i is moving the whole object over in x direction
 function getPosBuf(h, i) {
     if (i) {        
-        j = i / 4;
+        j = (i / 4) - 10;
     } else {
         j = 0; //no adding
     }
@@ -56,8 +56,7 @@ function getColorBuf(red, green, blue) {
         1,0,0, 1,0,0, 1,0,0, 1,0,0,
         1,1,0, 1,1,0, 1,1,0, 1,1,0,
         0,1,0, 0,1,0, 0,1,0, 0,1,0
-]}
-   
+]}   
 
 // element index array
 function getIndices() {
@@ -73,7 +72,7 @@ function getIndices() {
 
 // pass in data values from 0 - 255
 function createBoxSet(audioData, gl) {
-        
+    
     var vertex_buffer_array = [];
     var color_buffer_array = [];
     var index_buffer_array = [];
@@ -119,13 +118,8 @@ function createBoxSet(audioData, gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, boxSet.index_buffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(index_buffer_array), gl.STATIC_DRAW);
     
-    a = vertex_buffer_array;
-    b = color_buffer_array;
-    c = index_buffer_array;
-    
     return boxSet;
 }
-var a, b, c;
  /* var box1 = createBox(gl, 1.00, 0, 0, 0);
     var box2 = createBox(gl, 2.00, 0, 0, 0);
     

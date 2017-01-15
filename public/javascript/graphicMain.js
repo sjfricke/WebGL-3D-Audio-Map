@@ -15,8 +15,7 @@ window.onload = function() {
     var gl = canvas.getContext('webgl');
 
     /*========== Defining and storing the geometry ==========*/
-    var box = createBoxSet(frequencyData, gl);
-    console.log(box);
+    box = createBoxSet(frequencyData, gl);
 
     /*=================== SHADERS =================== */
 
@@ -44,21 +43,7 @@ window.onload = function() {
         alert("Could not initialise shaders"); }
 
     
-/*======== Associating attributes to vertex shader =====*/
-    var _Pmatrix = gl.getUniformLocation(shaderprogram, "Pmatrix");
-    var _Vmatrix = gl.getUniformLocation(shaderprogram, "Vmatrix");
-    var _Mmatrix = gl.getUniformLocation(shaderprogram, "Mmatrix");
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, box.vertex_buffer);
-    var _position = gl.getAttribLocation(shaderprogram, "position");
-    gl.vertexAttribPointer(_position, box.vertSize, gl.FLOAT, false,0,0);
-    gl.enableVertexAttribArray(_position);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, box.color_buffer);
-    var _color = gl.getAttribLocation(shaderprogram, "color");
-    gl.vertexAttribPointer(_color, box.colorSize, gl.FLOAT, false,0,0) ;
-    gl.enableVertexAttribArray(_color);
-    gl.useProgram(shaderprogram);
 
 /*==================== MATRIX ====================== */
 
@@ -72,7 +57,7 @@ window.onload = function() {
        ];
  }
 
- var proj_matrix = get_projection(70, canvas.width/canvas.height, 1, 100); //used to do main projection
+ var proj_matrix = get_projection(90, canvas.width/canvas.height, 1, 1000); //used to do main projection
  var mo_matrix = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
  var view_matrix = [ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 ];
 
@@ -175,11 +160,28 @@ window.onload = function() {
     time_old = time; 
     gl.enable(gl.DEPTH_TEST);
 
+    box = createBoxSet(frequencyData, gl);
     // gl.depthFunc(gl.LEQUAL);
 
+     /*======== Associating attributes to vertex shader =====*/
+    var _Pmatrix = gl.getUniformLocation(shaderprogram, "Pmatrix");
+    var _Vmatrix = gl.getUniformLocation(shaderprogram, "Vmatrix");
+    var _Mmatrix = gl.getUniformLocation(shaderprogram, "Mmatrix");
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, box.vertex_buffer);
+    var _position = gl.getAttribLocation(shaderprogram, "position");
+    gl.vertexAttribPointer(_position, box.vertSize, gl.FLOAT, false,0,0);
+    gl.enableVertexAttribArray(_position);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, box.color_buffer);
+    var _color = gl.getAttribLocation(shaderprogram, "color");
+    gl.vertexAttribPointer(_color, box.colorSize, gl.FLOAT, false,0,0) ;
+    gl.enableVertexAttribArray(_color);
+    gl.useProgram(shaderprogram);
+     
     gl.clearColor(0.5, 0.5, 0.5, 0.9);
     gl.clearDepth(1.0);
-    gl.viewport(0.0, -50.0, canvas.width, canvas.height); //used to recenter middle
+    gl.viewport(0.0, 0.0, canvas.width, canvas.height); //NOT to use to move camera
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniformMatrix4fv(_Pmatrix, false, proj_matrix);
